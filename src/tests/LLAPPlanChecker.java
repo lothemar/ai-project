@@ -126,7 +126,15 @@ public class LLAPPlanChecker {
             x = new ArrayList<>();
             break;
         }
-        return (this.v1 >= x.get(1) && this.v2 >= x.get(2) && this.v3 >= x.get(3) && this.v11 - this.v12 >= x.get(0));
+        boolean ret = (this.v1 >= x.get(1) && this.v2 >= x.get(2) && this.v3 >= x.get(3) && this.v11 - this.v12 >= x.get(0));
+
+        if(!ret) {
+            System.out.println(String.format("Actual values: Money %d Food %d Mat %d Ener %d", v11 - v12, v1, v2, v3));
+            System.out.println("Build 1 cost");
+            System.out.print(v9);
+            System.out.println();
+        }
+        return ret;
     }
 
 

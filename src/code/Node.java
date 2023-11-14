@@ -15,6 +15,12 @@ public class Node {
         this.cost = cost;
         this.depth = depth;
     }
+    public String getHash(){
+        String prevAction;
+        if (this.parent == null) prevAction = "";
+        else prevAction = this.parent.action;
+        return this.state.getHash(prevAction);
+    }
     public Node(NodeState state, Node parent, int cost, int depth, String action){
         this.state = state;
         this.parent = parent;

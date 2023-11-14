@@ -1,10 +1,12 @@
 package code;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 public class LLAPSearch extends GenericSearch {
     static String method;
+    static HashSet<String> visited = new HashSet<String>();
     public static void queueingFunction(LinkedList<Node> frontier, Node node){
         NodeState buyFood = node.state.newNode("requestfood");
         Node food = new Node(buyFood, node, node.state.getCost(buyFood, node.cost), node.depth+1, "requestfood");
@@ -22,8 +24,9 @@ public class LLAPSearch extends GenericSearch {
 //        System.out.println(build1 != null);
         LinkedList<Node> possibleChoices = new LinkedList<Node>();
         for(Node possibleNode : possibleNodes){
-            if(possibleNode.state != null){
+            if(possibleNode.state != null && !visited.contains(possibleNode.getHash())){
                 possibleChoices.add(possibleNode);
+                visited.add(possibleNode.getHash());
             }
         }
 
@@ -73,6 +76,11 @@ public class LLAPSearch extends GenericSearch {
         if (answer == null){
             return "nosolution";
         }
+        System.out.println(answer.parent.state);
+        System.out.println(answer.parent.state.requestType);
+        System.out.print(answer.parent.state.requestTime);
+        System.out.println(answer.state);
+        System.out.println(answer.parent.state.canBuild(1));
         System.out.println("Absolute difference");
         System.out.println(initialNode.state.money - answer.state.money);
         System.out.println(getAnswer(answer));

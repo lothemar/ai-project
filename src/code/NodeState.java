@@ -32,10 +32,10 @@ public class NodeState{
         switch(i){
             case 1:
                 int totalPrice1 = priceBuild1Int + foodUseBuild1 * unitPriceFood + materialsUseBuild1 * unitPriceMaterials + energyUseBuild1 * unitPriceEnergy;
-                return initFood >= foodUseBuild1 && initMaterials >= materialsUseBuild1 && initEnergy >= energyUseBuild1 && money >= totalPrice1;
+                return initFood > foodUseBuild1 && initMaterials > materialsUseBuild1 && initEnergy > energyUseBuild1 && money > totalPrice1;
             case 2:
                 int totalPrice2 = priceBuild2Int + foodUseBuild2 * unitPriceFood + materialsUseBuild2 * unitPriceMaterials + energyUseBuild2 * unitPriceEnergy;
-                return initFood >= foodUseBuild2 && initMaterials >= materialsUseBuild2 && initEnergy >= energyUseBuild2 && money >= totalPrice2;
+                return initFood > foodUseBuild2 && initMaterials > materialsUseBuild2 && initEnergy > energyUseBuild2 && money > totalPrice2;
             default:
                 return false;
         }
@@ -77,7 +77,7 @@ public class NodeState{
     }
     public String toString(){
         if (this == null )return null;
-        return "NodeState: \nmoney: " + money+"\nfood: " + initFood + "\nenergy: " + initEnergy +"\nmaterials " + initMaterials +"\n prosperity: " + prosperity;
+        return String.format("NodeState Food %d Mat %d Ener %d", initFood, initMaterials, initEnergy);
     }
     public NodeState(NodeState state){
         this.money = state.money;
@@ -125,30 +125,37 @@ public class NodeState{
         }
         return true;
     }
-    public NodeState newNode(String action){
-        NodeState newNodeState = new NodeState(this);
-        newNodeState.action2 = action;
-        if(newNodeState.requestTime != 0) {
-            newNodeState.requestTime -= 1;
+    public String getHash(String prevAc){
+        return prevAc + String.format("%d%d%d%d%s", initFood, initEnergy, initMaterials, prosperity, action2);
+    }
+    public void incr(){
+        if(requestTime != 0) {
+            requestTime -= 1;
 
-            if (newNodeState.requestTime == 0){
-                switch(newNodeState.requestType){
+            if (requestTime == 0){
+                switch(requestType){
                     case "food":
-                        newNodeState.initFood += newNodeState.amountFood;
+                        initFood += amountFood;
                         break;
                     case "energy":
-                        newNodeState.initEnergy += newNodeState.amountEnergy;
+                        initEnergy += amountEnergy;
                         break;
                     case "materials":
-                        newNodeState.initMaterials += newNodeState.amountMaterials;
+                        initMaterials += amountMaterials;
                         break;
                 }
             }
         }
+    }
+    public NodeState newNode(String action){
+        NodeState newNodeState = new NodeState(this);
+        newNodeState.action2 = action;
+
         if(newNodeState.initFood <= 0 || newNodeState.initEnergy <= 0 || newNodeState.initMaterials <= 0 || newNodeState.money <= 0){
             return null;
         }
         int cost;
+        newNodeState.incr();
         switch(action){
             case "requestfood":
                 if(!newNodeState.decr())  return null;
@@ -173,7 +180,7 @@ public class NodeState{
             case "requestmaterials":
                 if(!newNodeState.decr())  return null;
                 if(newNodeState.requestTime == 0) {
-                    newNodeState.requestTime = newNodeState.delayMaterials;
+                    newNodeState.requestTime = newNodeState.delayMaterials ;
                     newNodeState.requestType = "materials";
                 }
                 else{
@@ -182,7 +189,6 @@ public class NodeState{
                 break;
             case "build1":
                 if (newNodeState.canBuild(1)) {
-//                    System.out.println("building1");
                     newNodeState.initFood -= newNodeState.foodUseBuild1;
                     newNodeState.initMaterials -= newNodeState.materialsUseBuild1;
                     newNodeState.initEnergy -= newNodeState.energyUseBuild1;
@@ -215,7 +221,6 @@ public class NodeState{
                 if(!newNodeState.decr())  return null;
                 break;
         }
-
 
         return newNodeState;
     }
