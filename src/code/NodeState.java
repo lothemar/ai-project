@@ -77,7 +77,40 @@ public class NodeState{
     }
     public String toString(){
         if (this == null )return null;
-        return String.format("NodeState Food %d Mat %d Ener %d", initFood, initMaterials, initEnergy);
+        return String.format("%d %d %d", initFood, initMaterials, initEnergy);
+    }
+    public int h1Value(){
+        return 100 - prosperity;
+    }
+    public int h2Value() {
+        return money;
+    }
+    public void setFood(int food){
+        int newFood = food + initFood;
+        if (newFood >= 50){
+            initFood = 50;
+        }
+        else{
+            initFood = newFood;
+        }
+    }
+    public void setMaterials(int materials){
+        int newMaterials = materials + initMaterials;
+        if (newMaterials >= 50){
+            initMaterials = 50;
+        }
+        else{
+            initMaterials = newMaterials;
+        }
+    }
+    public void setEnergy(int energy){
+        int newEnergy = energy + initEnergy;
+        if (newEnergy >= 50){
+            initEnergy = 50;
+        }
+        else{
+            initEnergy = newEnergy;
+        }
     }
     public NodeState(NodeState state){
         this.money = state.money;
@@ -125,8 +158,13 @@ public class NodeState{
         }
         return true;
     }
-    public String getHash(String prevAc){
-        return prevAc + String.format("%d%d%d%d%s", initFood, initEnergy, initMaterials, prosperity, action2);
+    public String getHash(String prevAc, String method){
+        switch(method){
+            case "ID":
+                return String.format("%d%d%d%ds", initFood, initEnergy, initMaterials, prosperity);
+            default:
+                return prevAc + String.format("%d%d%d%s", initFood, initEnergy, initMaterials, action2);
+        }
     }
     public void incr(){
         if(requestTime != 0) {
@@ -135,13 +173,13 @@ public class NodeState{
             if (requestTime == 0){
                 switch(requestType){
                     case "food":
-                        initFood += amountFood;
+                        setFood(amountFood);
                         break;
                     case "energy":
-                        initEnergy += amountEnergy;
+                        setEnergy(amountEnergy);
                         break;
                     case "materials":
-                        initMaterials += amountMaterials;
+                        setMaterials(amountMaterials);
                         break;
                 }
             }

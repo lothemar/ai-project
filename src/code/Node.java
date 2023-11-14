@@ -15,11 +15,17 @@ public class Node {
         this.cost = cost;
         this.depth = depth;
     }
-    public String getHash(){
+    public int h1(){
+        return state.h1Value();
+    }
+    public int h2(){
+        return state.h2Value();
+    }
+    public String getHash(String method){
         String prevAction;
         if (this.parent == null) prevAction = "";
         else prevAction = this.parent.action;
-        return this.state.getHash(prevAction);
+        return this.state.getHash(prevAction, method);
     }
     public Node(NodeState state, Node parent, int cost, int depth, String action){
         this.state = state;

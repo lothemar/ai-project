@@ -1,13 +1,16 @@
 package code;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import tests.LLAPPlanChecker;
+
+import java.util.*;
 
 public class LLAPSearch extends GenericSearch {
     static String method;
     static HashSet<String> visited = new HashSet<String>();
-    public static void queueingFunction(LinkedList<Node> frontier, Node node){
+    public static void clearVisited(){
+        visited = new HashSet<String>();
+    }
+    public static Node[] getNodes(Node node){
         NodeState buyFood = node.state.newNode("requestfood");
         Node food = new Node(buyFood, node, node.state.getCost(buyFood, node.cost), node.depth+1, "requestfood");
         NodeState buyMaterials = node.state.newNode("requestmaterials");
@@ -21,12 +24,28 @@ public class LLAPSearch extends GenericSearch {
         NodeState wait = node.state.newNode("wait");
         Node waitNode = new Node(wait, node, node.state.getCost(wait, node.cost), node.depth+1, "wait");
         Node[] possibleNodes = {food, materials, energy, buildNode1, buildNode2, waitNode};
-//        System.out.println(build1 != null);
-        LinkedList<Node> possibleChoices = new LinkedList<Node>();
+        return possibleNodes;
+    }
+    public static void queueingFunctionPrioQueue(PriorityQueue<Node> frontier, Node node){
+        Node[] possibleNodes = getNodes(node);
+        ArrayList<Node> possibleChoices = new ArrayList<Node>();
+
         for(Node possibleNode : possibleNodes){
-            if(possibleNode.state != null && !visited.contains(possibleNode.getHash())){
+            if(possibleNode.state != null && !visited.contains(possibleNode.getHash(method))){
                 possibleChoices.add(possibleNode);
-                visited.add(possibleNode.getHash());
+                visited.add(possibleNode.getHash(method));
+            }
+        }
+        frontier.addAll(possibleChoices);
+    }
+    public static void queueingFunction(LinkedList<Node> frontier, Node node){
+        Node[] possibleNodes = getNodes(node);
+        ArrayList<Node> possibleChoices = new ArrayList<Node>();
+
+        for(Node possibleNode : possibleNodes){
+            if(possibleNode.state != null && !visited.contains(possibleNode.getHash(method))){
+                possibleChoices.add(possibleNode);
+                visited.add(possibleNode.getHash(method));
             }
         }
 
@@ -34,21 +53,12 @@ public class LLAPSearch extends GenericSearch {
             case "BF":
                 frontier.addAll(possibleChoices);
                 break;
-            case "DFS":
-                frontier.addFirst(node);
+            case "DF":
+                for(Node possibleNode: possibleChoices){
+                    frontier.addFirst(possibleNode);
+                }
                 break;
-            case "UCS":
-                frontier.addLast(node);
-                break;
-            case "GS":
-                frontier.addLast(node);
-                break;
-            case "A*":
-                frontier.addLast(node);
-                break;
-            case "ID":
-                frontier.addLast(node);
-                break;
+
         }
     }
     public static String getAnswer(Node node){
@@ -60,33 +70,40 @@ public class LLAPSearch extends GenericSearch {
             wrongAnswer.addFirst(node);
             node = node.parent;
         }
-        node = initial;
-        // join all the strings in the list using a comma
-//        //System.out.println("wrongAnswer: "+wrongAnswer);
-//        while(node.parent != null){
-//            System.out.println(node.state.action2 + " : " + (node.parent.state.money - node.state.money) );
-//            node = node.parent;
-//        }
         return String.join(",", answer);
     }
     public static String solve(String initialState, String method2, boolean visualize){
         method = method2;
         Node initialNode = new Node(initialState, null, 0, 0);
-        Node answer = search(initialNode);
+        Node answer = search(initialNode, method2);
         if (answer == null){
             return "nosolution";
         }
-        System.out.println(answer.parent.state);
-        System.out.println(answer.parent.state.requestType);
-        System.out.print(answer.parent.state.requestTime);
-        System.out.println(answer.state);
-        System.out.println(answer.parent.state.canBuild(1));
-        System.out.println("Absolute difference");
-        System.out.println(initialNode.state.money - answer.state.money);
-        System.out.println(getAnswer(answer));
         return getAnswer(answer) + ";" + answer.cost + ";" +answer.depth;
     }
+    public static void genSol(String[] steps, String initialState){
+        Node n = new Node(initialState, null, 0, 0);
+        for(String step: steps){
+            NodeState stepNode = n.state.newNode(step);
+            Node m = new Node(stepNode, n, n.state.getCost(stepNode, n.cost), n.depth+1, step);
+            n = m;
+            System.out.println(n.state);
+        }
+    }
     public static void main(String[] args){
-        solve("", "BF", true);
+        String steps = "requestfood,requestfood,requestfood,requestfood,requestfood,requestmaterials,wait,requestmaterials,wait,requestenergy,requestmaterials,wait,requestenergy,requestenergy,requestmaterials,build2,requestenergy,requestenergy,build2";
+
+        String initialState= "32;" +
+                "20,16,11;" +
+                "76,14,14;" +
+                "9,1;9,2;9,1;" +
+                "358,14,25,23,39;" +
+                "5024,20,17,17,38;";
+        genSol(steps.split(","), initialState);
+        System.out.println("separtor");
+        LLAPPlanChecker s = new LLAPPlanChecker(initialState);
+        String sol = steps + ";18600;18";
+
+        s.applyPlan(initialState, sol);
     }
 }
